@@ -1,0 +1,342 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+
+body{
+
+    background:#08111f;
+    color:white;
+
+}
+
+.app{
+
+    width:100%;
+    max-width:500px;
+    margin:auto;
+    padding:20px;
+
+}
+
+.header{
+
+    margin-bottom:25px;
+
+}
+
+.header h1{
+
+    font-size:30px;
+    font-weight:700;
+
+}
+
+.header p{
+
+    margin-top:8px;
+    color:#9fb3cc;
+    line-height:1.6;
+
+}
+
+.card{
+
+    background:#101b2d;
+    border-radius:18px;
+    padding:18px;
+    margin-bottom:18px;
+    border:1px solid #273852;
+
+}
+
+.field{
+
+    margin-bottom:18px;
+
+}
+
+label{
+
+    display:block;
+    margin-bottom:8px;
+    color:#dce6f5;
+    font-size:14px;
+
+}
+
+.input-box{
+
+    display:flex;
+    align-items:center;
+
+    background:#091524;
+
+    border:1px solid #31435d;
+
+    border-radius:12px;
+
+    overflow:hidden;
+
+}
+
+.input-box input{
+
+    width:100%;
+    padding:14px;
+
+    background:transparent;
+
+    border:none;
+
+    outline:none;
+
+    color:white;
+
+    font-size:18px;
+
+}
+
+.input-box span{
+
+    padding:0 14px;
+    color:#8ea2bc;
+    font-size:13px;
+
+}
+
+.pipe-buttons{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:8px;
+
+    margin-top:10px;
+
+}
+
+.pipe-buttons button{
+
+    background:#18263d;
+
+    border:1px solid #30445f;
+
+    color:white;
+
+    border-radius:10px;
+
+    padding:10px;
+
+}
+
+.two-columns{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:12px;
+
+}
+
+.calculate-button{
+
+    width:100%;
+
+    padding:16px;
+
+    background:#2970ff;
+
+    border:none;
+
+    border-radius:14px;
+
+    color:white;
+
+    font-size:18px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+}
+
+.calculate-button:hover{
+
+    background:#3d82ff;
+
+}
+
+.error-box{
+
+    display:none;
+
+    margin-top:15px;
+
+    background:#4a1f1f;
+
+    border:1px solid #7f3131;
+
+    color:#ffbcbc;
+
+    padding:12px;
+
+    border-radius:12px;
+
+}
+
+.result-card{
+
+    display:none;
+
+}
+
+.main-result{
+
+    background:#182740;
+
+    border-radius:16px;
+
+    padding:20px;
+
+    text-align:center;
+
+    margin-bottom:15px;
+
+}
+
+.small-title{
+
+    color:#91a7c3;
+
+    font-size:13px;
+
+}
+
+.main-value{
+
+    font-size:42px;
+
+    font-weight:bold;
+
+    margin-top:10px;
+
+}
+
+.fraction-value{
+
+    color:#c8d8ec;
+
+    margin-top:8px;
+
+}
+
+.result-grid{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:10px;
+
+}
+
+.result-box{
+
+    background:#091523;
+
+    border:1px solid #2c3f5b;
+
+    border-radius:14px;
+
+    padding:14px;
+
+}
+
+.result-value{
+
+    margin-top:8px;
+
+    font-size:20px;
+
+    font-weight:bold;
+
+}
+
+.plate-table{
+
+    margin-top:18px;
+
+    border:1px solid #30445f;
+
+    border-radius:14px;
+
+    overflow:hidden;
+
+}
+
+.table-row{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    padding:12px;
+
+    border-bottom:1px solid #30445f;
+
+}
+
+.table-row:last-child{
+
+    border-bottom:none;
+
+}
+
+.table-head{
+
+    background:#081422;
+
+    color:#8ea2bc;
+
+    font-size:13px;
+
+}
+
+.selected{
+
+    background:#123b27;
+
+}
+
+.note{
+
+    margin-top:16px;
+
+    color:#9fb3cc;
+
+    line-height:1.7;
+
+    font-size:13px;
+
+}
+
+@media(max-width:480px){
+
+    .two-columns{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .result-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
