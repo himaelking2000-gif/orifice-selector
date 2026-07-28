@@ -1,241 +1,604 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1"
-  >
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover"
+    >
 
-  <meta name="theme-color" content="#07111f">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#08111f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="black-translucent"
+    >
 
-  <title>Orifice Plate Selector</title>
+    <title>Well Test Orifice Selector</title>
 
-  <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <main class="app">
+<div class="app-shell">
 
-    <header class="header">
-      <h1>Orifice Plate Selector</h1>
+    <header class="top-header">
 
-      <p>
-        Select a new orifice plate using the current differential pressure.
-      </p>
+        <div>
+            <p class="eyebrow">WELL TEST FIELD TOOL</p>
+            <h1>Orifice Selector</h1>
+        </div>
+
+        <button
+            class="icon-button"
+            type="button"
+            onclick="toggleTheme()"
+            aria-label="Toggle theme"
+        >
+            ◐
+        </button>
+
     </header>
 
-    <section class="card">
+    <main>
 
-      <div class="field">
+        <!-- CALCULATOR PAGE -->
 
-        <label for="pipeID">
-          Pipe / Meter Tube I.D.
-        </label>
+        <section id="calculatorPage" class="page active-page">
 
-        <div class="input-box">
-          <input
-            id="pipeID"
-            type="number"
-            inputmode="decimal"
-            value="4.026"
-            step="0.001"
-          >
+            <div class="card">
 
-          <span>inch</span>
-        </div>
+                <div class="section-heading">
+                    <div>
+                        <h2>Operating Data</h2>
+                        <p>
+                            Calculate a new plate for a desired
+                            differential pressure.
+                        </p>
+                    </div>
+                </div>
 
-        <div class="pipe-buttons">
+                <div class="field">
 
-          <button type="button" onclick="setPipe(1.049)">
-            1"
-          </button>
+                    <label for="jobName">
+                        Job / Well Name
+                    </label>
 
-          <button type="button" onclick="setPipe(2.067)">
-            2"
-          </button>
+                    <input
+                        id="jobName"
+                        class="text-input"
+                        type="text"
+                        placeholder="Optional"
+                        autocomplete="off"
+                    >
 
-          <button type="button" onclick="setPipe(3.068)">
-            3"
-          </button>
+                </div>
 
-          <button type="button" onclick="setPipe(4.026)">
-            4"
-          </button>
+                <div class="field">
 
-        </div>
+                    <label for="pipeID">
+                        Pipe / Meter Tube I.D.
+                    </label>
 
-      </div>
+                    <div class="input-with-unit">
 
-      <div class="field">
+                        <input
+                            id="pipeID"
+                            type="number"
+                            inputmode="decimal"
+                            value="4.026"
+                            step="0.001"
+                        >
 
-        <label for="currentOrifice">
-          Current Orifice Bore
-        </label>
+                        <span>inch</span>
 
-        <div class="input-box">
+                    </div>
 
-          <input
-            id="currentOrifice"
-            type="number"
-            inputmode="decimal"
-            value="2.000"
-            step="0.001"
-          >
+                    <div class="quick-buttons">
 
-          <span>inch</span>
+                        <button
+                            type="button"
+                            onclick="setPipe(1.049)"
+                        >
+                            1"
+                        </button>
 
-        </div>
+                        <button
+                            type="button"
+                            onclick="setPipe(2.067)"
+                        >
+                            2"
+                        </button>
 
-      </div>
+                        <button
+                            type="button"
+                            onclick="setPipe(3.068)"
+                        >
+                            3"
+                        </button>
 
-      <div class="two-columns">
+                        <button
+                            type="button"
+                            onclick="setPipe(4.026)"
+                        >
+                            4"
+                        </button>
 
-        <div class="field">
+                    </div>
 
-          <label for="currentDP">
-            Current DP
-          </label>
+                </div>
 
-          <div class="input-box">
+                <div class="field">
 
-            <input
-              id="currentDP"
-              type="number"
-              inputmode="decimal"
-              value="30"
-              step="0.1"
+                    <label for="currentOrifice">
+                        Current Orifice Bore
+                    </label>
+
+                    <div class="input-with-unit">
+
+                        <input
+                            id="currentOrifice"
+                            type="number"
+                            inputmode="decimal"
+                            value="2.000"
+                            step="0.0625"
+                        >
+
+                        <span>inch</span>
+
+                    </div>
+
+                    <div class="step-buttons">
+
+                        <button
+                            type="button"
+                            onclick="stepCurrentPlate(-1)"
+                        >
+                            − 1/16"
+                        </button>
+
+                        <button
+                            type="button"
+                            onclick="stepCurrentPlate(1)"
+                        >
+                            + 1/16"
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="two-columns">
+
+                    <div class="field">
+
+                        <label for="currentDP">
+                            Current DP
+                        </label>
+
+                        <div class="input-with-unit">
+
+                            <input
+                                id="currentDP"
+                                type="number"
+                                inputmode="decimal"
+                                value="30"
+                                step="0.1"
+                            >
+
+                            <span id="currentDPUnit">
+                                inH₂O
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="field">
+
+                        <label for="desiredDP">
+                            Desired DP
+                        </label>
+
+                        <div class="input-with-unit">
+
+                            <input
+                                id="desiredDP"
+                                type="number"
+                                inputmode="decimal"
+                                value="350"
+                                step="0.1"
+                            >
+
+                            <span id="desiredDPUnit">
+                                inH₂O
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="field">
+
+                    <label for="dpUnit">
+                        Differential Pressure Unit
+                    </label>
+
+                    <select
+                        id="dpUnit"
+                        class="select-input"
+                        onchange="updateDPUnitLabels()"
+                    >
+                        <option value="inH2O">
+                            inH₂O
+                        </option>
+
+                        <option value="psi">
+                            psi
+                        </option>
+
+                        <option value="kPa">
+                            kPa
+                        </option>
+                    </select>
+
+                </div>
+
+                <button
+                    class="primary-button"
+                    type="button"
+                    onclick="calculateOrifice()"
+                >
+                    CALCULATE NEW PLATE
+                </button>
+
+                <div
+                    id="errorBox"
+                    class="error-box"
+                ></div>
+
+            </div>
+
+            <!-- RESULT -->
+
+            <div
+                id="resultCard"
+                class="card result-card"
             >
 
-            <span>inH₂O</span>
+                <div class="recommended-result">
 
-          </div>
+                    <p>Recommended Standard Plate</p>
 
-        </div>
+                    <div
+                        id="nearestPlate"
+                        class="recommended-size"
+                    >
+                        —
+                    </div>
 
-        <div class="field">
+                    <div
+                        id="fractionPlate"
+                        class="fraction-size"
+                    >
+                        —
+                    </div>
 
-          <label for="desiredDP">
-            Desired DP
-          </label>
+                </div>
 
-          <div class="input-box">
+                <div class="result-grid">
 
-            <input
-              id="desiredDP"
-              type="number"
-              inputmode="decimal"
-              value="350"
-              step="0.1"
-            >
+                    <div class="result-box">
 
-            <span>inH₂O</span>
+                        <span>Calculated Bore</span>
 
-          </div>
+                        <strong id="calculatedBore">
+                            —
+                        </strong>
 
-        </div>
+                    </div>
 
-      </div>
+                    <div class="result-box">
 
-      <button
-        type="button"
-        class="calculate-button"
-        onclick="calculateOrifice()"
-      >
-        CALCULATE NEW SIZE
-      </button>
+                        <span>Expected DP</span>
 
-      <div id="errorBox" class="error-box"></div>
+                        <strong id="expectedDP">
+                            —
+                        </strong>
 
-    </section>
+                    </div>
 
-    <section id="resultCard" class="card result-card">
+                    <div class="result-box">
 
-      <div class="main-result">
+                        <span>Beta Ratio</span>
 
-        <div class="small-title">
-          Nearest Standard Plate
-        </div>
+                        <strong id="betaRatio">
+                            —
+                        </strong>
 
-        <div id="nearestPlate" class="main-value">
-          -
-        </div>
+                    </div>
 
-        <div id="fractionPlate" class="fraction-value">
-          -
-        </div>
+                    <div class="result-box">
 
-      </div>
+                        <span>Status</span>
 
-      <div class="result-grid">
+                        <strong id="status">
+                            —
+                        </strong>
 
-        <div class="result-box">
+                    </div>
 
-          <div class="small-title">
-            Calculated Bore
-          </div>
+                </div>
 
-          <div id="calculatedBore" class="result-value">
-            -
-          </div>
+                <div class="result-actions">
 
-        </div>
+                    <button
+                        type="button"
+                        onclick="saveCalculation()"
+                    >
+                        Save
+                    </button>
 
-        <div class="result-box">
+                    <button
+                        type="button"
+                        onclick="shareResult()"
+                    >
+                        Share
+                    </button>
 
-          <div class="small-title">
-            Expected DP
-          </div>
+                </div>
 
-          <div id="expectedDP" class="result-value">
-            -
-          </div>
+                <h3 class="table-title">
+                    Nearby Standard Plates
+                </h3>
 
-        </div>
+                <div
+                    id="plateTable"
+                    class="plate-table"
+                ></div>
 
-        <div class="result-box">
+                <p class="field-note">
+                    Field estimate only. The calculation assumes
+                    approximately constant flow and applies a basic
+                    bore-to-pipe geometry correction. Follow the
+                    approved company procedure before changing a plate.
+                </p>
 
-          <div class="small-title">
-            Beta Ratio
-          </div>
+            </div>
 
-          <div id="betaRatio" class="result-value">
-            -
-          </div>
+        </section>
 
-        </div>
 
-        <div class="result-box">
+        <!-- HISTORY PAGE -->
 
-          <div class="small-title">
-            Status
-          </div>
+        <section id="historyPage" class="page">
 
-          <div id="status" class="result-value">
-            -
-          </div>
+            <div class="card">
 
-        </div>
+                <div class="section-heading">
 
-      </div>
+                    <div>
+                        <h2>Calculation History</h2>
+                        <p>
+                            Saved calculations remain on this device.
+                        </p>
+                    </div>
 
-      <div id="plateTable" class="plate-table"></div>
+                    <button
+                        class="small-danger-button"
+                        type="button"
+                        onclick="clearHistory()"
+                    >
+                        Clear
+                    </button>
 
-      <p class="note">
-        Field estimate only. The calculation assumes the flow rate remains
-        constant. Follow your company operating procedure before changing
-        the orifice plate.
-      </p>
+                </div>
 
-    </section>
+                <div
+                    id="historyList"
+                    class="history-list"
+                ></div>
 
-  </main>
+            </div>
 
-  <script src="script.js"></script>
+        </section>
+
+
+        <!-- PLATE TABLE PAGE -->
+
+        <section id="platesPage" class="page">
+
+            <div class="card">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>American Plate Sizes</h2>
+                        <p>
+                            Standard increments of 1/16 inch.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="field">
+
+                    <label for="tablePipeID">
+                        Pipe I.D. for Beta Ratio
+                    </label>
+
+                    <div class="input-with-unit">
+
+                        <input
+                            id="tablePipeID"
+                            type="number"
+                            inputmode="decimal"
+                            value="4.026"
+                            step="0.001"
+                            oninput="renderStandardPlateTable()"
+                        >
+
+                        <span>inch</span>
+
+                    </div>
+
+                </div>
+
+                <div
+                    id="standardPlateTable"
+                    class="plate-table"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SETTINGS PAGE -->
+
+        <section id="settingsPage" class="page">
+
+            <div class="card">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Settings</h2>
+                        <p>
+                            Configure field calculation limits.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="field">
+
+                    <label for="minimumBeta">
+                        Minimum Beta Warning
+                    </label>
+
+                    <input
+                        id="minimumBeta"
+                        class="text-input"
+                        type="number"
+                        inputmode="decimal"
+                        value="0.20"
+                        step="0.01"
+                    >
+
+                </div>
+
+                <div class="field">
+
+                    <label for="maximumBeta">
+                        Maximum Beta Warning
+                    </label>
+
+                    <input
+                        id="maximumBeta"
+                        class="text-input"
+                        type="number"
+                        inputmode="decimal"
+                        value="0.75"
+                        step="0.01"
+                    >
+
+                </div>
+
+                <button
+                    class="primary-button"
+                    type="button"
+                    onclick="saveSettings()"
+                >
+                    SAVE SETTINGS
+                </button>
+
+                <p class="field-note">
+                    These limits only control the application warning.
+                    They do not replace engineering review or company
+                    requirements.
+                </p>
+
+            </div>
+
+            <div class="card about-card">
+
+                <p class="eyebrow">
+                    APPLICATION
+                </p>
+
+                <h2>Well Test Orifice Selector</h2>
+
+                <p>
+                    Final Field Edition 1.0
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- BOTTOM NAVIGATION -->
+
+    <nav class="bottom-nav">
+
+        <button
+            id="calculatorNav"
+            class="active-nav"
+            type="button"
+            onclick="openPage('calculator')"
+        >
+            <span>⌂</span>
+            Calculator
+        </button>
+
+        <button
+            id="historyNav"
+            type="button"
+            onclick="openPage('history')"
+        >
+            <span>▤</span>
+            History
+        </button>
+
+        <button
+            id="platesNav"
+            type="button"
+            onclick="openPage('plates')"
+        >
+            <span>≡</span>
+            Plates
+        </button>
+
+        <button
+            id="settingsNav"
+            type="button"
+            onclick="openPage('settings')"
+        >
+            <span>⚙</span>
+            Settings
+        </button>
+
+    </nav>
+
+</div>
+
+<script src="script.js"></script>
+
+<script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+            navigator.serviceWorker.register("service-worker.js");
+        });
+    }
+</script>
 
 </body>
 </html>
