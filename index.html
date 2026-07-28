@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1"
+  >
+
+  <meta name="theme-color" content="#07111f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>Orifice Plate Selector</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <main class="app">
+
+    <header class="header">
+      <h1>Orifice Plate Selector</h1>
+
+      <p>
+        Select a new orifice plate using the current differential pressure.
+      </p>
+    </header>
+
+    <section class="card">
+
+      <div class="field">
+
+        <label for="pipeID">
+          Pipe / Meter Tube I.D.
+        </label>
+
+        <div class="input-box">
+          <input
+            id="pipeID"
+            type="number"
+            inputmode="decimal"
+            value="4.026"
+            step="0.001"
+          >
+
+          <span>inch</span>
+        </div>
+
+        <div class="pipe-buttons">
+
+          <button type="button" onclick="setPipe(1.049)">
+            1"
+          </button>
+
+          <button type="button" onclick="setPipe(2.067)">
+            2"
+          </button>
+
+          <button type="button" onclick="setPipe(3.068)">
+            3"
+          </button>
+
+          <button type="button" onclick="setPipe(4.026)">
+            4"
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="field">
+
+        <label for="currentOrifice">
+          Current Orifice Bore
+        </label>
+
+        <div class="input-box">
+
+          <input
+            id="currentOrifice"
+            type="number"
+            inputmode="decimal"
+            value="2.000"
+            step="0.001"
+          >
+
+          <span>inch</span>
+
+        </div>
+
+      </div>
+
+      <div class="two-columns">
+
+        <div class="field">
+
+          <label for="currentDP">
+            Current DP
+          </label>
+
+          <div class="input-box">
+
+            <input
+              id="currentDP"
+              type="number"
+              inputmode="decimal"
+              value="30"
+              step="0.1"
+            >
+
+            <span>inH₂O</span>
+
+          </div>
+
+        </div>
+
+        <div class="field">
+
+          <label for="desiredDP">
+            Desired DP
+          </label>
+
+          <div class="input-box">
+
+            <input
+              id="desiredDP"
+              type="number"
+              inputmode="decimal"
+              value="350"
+              step="0.1"
+            >
+
+            <span>inH₂O</span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <button
+        type="button"
+        class="calculate-button"
+        onclick="calculateOrifice()"
+      >
+        CALCULATE NEW SIZE
+      </button>
+
+      <div id="errorBox" class="error-box"></div>
+
+    </section>
+
+    <section id="resultCard" class="card result-card">
+
+      <div class="main-result">
+
+        <div class="small-title">
+          Nearest Standard Plate
+        </div>
+
+        <div id="nearestPlate" class="main-value">
+          -
+        </div>
+
+        <div id="fractionPlate" class="fraction-value">
+          -
+        </div>
+
+      </div>
+
+      <div class="result-grid">
+
+        <div class="result-box">
+
+          <div class="small-title">
+            Calculated Bore
+          </div>
+
+          <div id="calculatedBore" class="result-value">
+            -
+          </div>
+
+        </div>
+
+        <div class="result-box">
+
+          <div class="small-title">
+            Expected DP
+          </div>
+
+          <div id="expectedDP" class="result-value">
+            -
+          </div>
+
+        </div>
+
+        <div class="result-box">
+
+          <div class="small-title">
+            Beta Ratio
+          </div>
+
+          <div id="betaRatio" class="result-value">
+            -
+          </div>
+
+        </div>
+
+        <div class="result-box">
+
+          <div class="small-title">
+            Status
+          </div>
+
+          <div id="status" class="result-value">
+            -
+          </div>
+
+        </div>
+
+      </div>
+
+      <div id="plateTable" class="plate-table"></div>
+
+      <p class="note">
+        Field estimate only. The calculation assumes the flow rate remains
+        constant. Follow your company operating procedure before changing
+        the orifice plate.
+      </p>
+
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
