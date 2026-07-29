@@ -448,3 +448,456 @@ function updateSelectorDPUnit() {
         displayUnit;
     });
 }
+/* =========================================================
+   PLATE SELECTOR CALCULATION
+========================================================= */
+
+function geometryTerm(orifice, pipeID) {
+  const beta = orifice / pipeID;
+
+  if (beta <= 0 || beta >= 1) {
+    return NaN;
+  }
+
+  return (
+    orifice ** 2 /
+    Math.sqrt(1 - beta ** 4)
+  );
+}
+
+function solveNewBore(
+  pipeID,
+  currentBore,
+  currentDP,
+  desiredDP
+) {
+  const currentGeometry =
+    geometryTerm(currentBore, pipeID);
+
+  if (!Number.isFinite(currentGeometry)) {
+    return NaN;
+  }
+
+  const targetGeometry =
+    currentGeometry *
+    Math.sqrt(currentDP / desiredDP);
+
+  let minimum = 0.001;
+  let maximum = pipeID * 0.99;
+
+  for (
+    let iteration = 0;
+    iteration < 100;
+    iteration++
+  ) {
+    const middle =
+      (minimum + maximum) / 2;
+
+    const middleGeometry =
+      geometryTerm(middle, pipeID);
+
+    if (middleGeometry < targetGeometry) {
+      minimum = middle;
+    } else {
+      maximum = middle;
+    }
+  }
+
+  return (minimum + maximum) / 2;
+}
+
+function calculateExpectedDP(
+  pipeID,
+  currentBore,
+  currentDP,
+  newBore
+) {
+  const currentGeometry =
+    geometryTerm(currentBore, pipeID);
+
+  const newGeometry =
+    geometryTerm(newBore, pipeID);
+
+  if (
+    !Number.isFinite(currentGeometry) ||
+    !Number.isFinite(newGeometry)
+  ) {
+    return NaN;
+  }
+
+  return (
+    currentDP *
+    (currentGeometry / newGeometry) ** 2
+  );
+}
+
+function calculatePlateSelector() {
+  clearError("selectorError");
+
+  hideCard("selectorResultCard");
+
+  const pipeID =
+    getNumber("selectorPipeID");
+
+  const currentBore =
+    getNumber("selectorCurrentPlate");
+
+  const currentDP =
+    getNumber("selectorCurrentDP");
+
+  const desiredDP =
+    getNumber("selectorTargetDP");
+
+  const unit =
+    el("selectorDPUnit")?.value ||
+    "inH2O";
+
+  const values = [
+    pipeID,
+    currentBore,
+    currentDP,
+    desiredDP
+  ];
+
+  if (
+    values.some(
+      value => !Number.isFinite(value)
+    )
+  ) {
+    showError(
+      "selectorError",
+      "Enter valid numeric values in all fields."
+    );
+
+    return;
+  }
+
+  if (pipeID <= 0) {
+    showError(
+      "selectorError",
+      "Pipe ID must be greater than zero."
+    );
+
+    return;
+  }
+
+  if (
+    currentBore <= 0 ||
+    currentBore >= pipeID
+  ) {
+    showError(
+      "selectorError",
+      "Current plate bore must be greater than zero and smaller than the pipe ID."
+    );
+
+    return;
+  }
+
+  if (
+    currentDP <= 0 ||
+    desiredDP <= 0
+  ) {
+    showError(
+      "selectorError",
+      "Differential pressure values must be greater than zero."
+    );
+
+    return;
+  }
+
+  const calculatedBore =
+    solveNewBore(
+      pipeID,
+      currentBore,
+      currentDP,
+      desiredDP
+    );
+
+  if (
+    !Number.isFinite(calculatedBore)
+  ) {
+    showError(
+      "selectorError",
+      "Unable to calculate the required plate bore."
+    );
+
+    return;
+  }
+
+  const recommendedPlate =
+    nearestStandardPlate(
+      calculatedBore,
+      pipeID
+    );
+
+  const expectedDP =
+    calculateExpectedDP(
+      pipeID,
+      currentBore,
+      currentDP,
+      recommendedPlate
+    );
+
+  const beta =
+    recommendedPlate / pipeID;
+
+  const status =
+    betaStatus(beta);
+
+  if (
+    el("selectorRecommendedPlate")
+  ) {
+    el(
+      "selectorRecommendedPlate"
+    ).textContent =
+      `${formatNumber(
+        recommendedPlate,
+        4
+      )} in`;
+  }
+
+  if (
+    el("selectorRecommendedFraction")
+  ) {
+    el(
+      "selectorRecommendedFraction"
+    ).textContent =
+      fractionFromDecimal(
+        recommendedPlate
+      );
+  }
+
+  if (
+    el("selectorCalculatedBore")
+  ) {
+    el(
+      "selectorCalculatedBore"
+    ).textContent =
+      `${formatNumber(
+        calculatedBore,
+        4
+      )} in`;
+  }
+
+  if (
+    el("selectorExpectedDP")
+  ) {
+    el(
+      "selectorExpectedDP"
+    ).textContent =
+      `${formatNumber(
+        expectedDP,
+        2
+      )} ${
+        unit === "inH2O"
+          ? "inH₂O"
+          : unit
+      }`;
+  }
+
+  if (
+    el("selectorBeta")
+  ) {
+    el(
+      "selectorBeta"
+    ).textContent =
+      formatNumber(beta, 3);
+  }
+
+  if (
+    el("selectorStatus")
+  ) {
+    el(
+      "selectorStatus"
+    ).textContent =
+      status.text;
+
+    el(
+      "selectorStatus"
+    ).className =
+      status.className;
+  }
+
+  const nearbyPlates =
+    standardPlateSizes(pipeID)
+      .sort(
+        (first, second) => {
+          const firstDifference =
+            Math.abs(
+              first - calculatedBore
+            );
+
+          const secondDifference =
+            Math.abs(
+              second - calculatedBore
+            );
+
+          return (
+            firstDifference -
+            secondDifference
+          );
+        }
+      )
+      .slice(0, 7)
+      .sort(
+        (first, second) =>
+          first - second
+      );
+
+  renderSelectorPlateTable(
+    nearbyPlates,
+    pipeID,
+    currentBore,
+    currentDP,
+    recommendedPlate,
+    unit
+  );
+
+  lastSelectorResult = {
+    type: "Plate Selector",
+
+    timestamp:
+      currentTimestamp(),
+
+    jobName:
+      el(
+        "selectorJobName"
+      )?.value.trim() ||
+      "Unnamed Job",
+
+    pipeID,
+    currentBore,
+    currentDP,
+    desiredDP,
+    unit,
+    calculatedBore,
+    recommendedPlate,
+    expectedDP,
+    beta,
+
+    status:
+      status.text
+  };
+
+  showCard(
+    "selectorResultCard"
+  );
+
+  el(
+    "selectorResultCard"
+  )?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+function renderSelectorPlateTable(
+  plates,
+  pipeID,
+  currentBore,
+  currentDP,
+  recommendedPlate,
+  unit
+) {
+  const container =
+    el("selectorPlateTable");
+
+  if (!container) {
+    return;
+  }
+
+  let html = `
+    <div class="table-row table-head">
+
+      <span>
+        Plate
+      </span>
+
+      <span>
+        Expected DP
+      </span>
+
+      <span>
+        Beta
+      </span>
+
+    </div>
+  `;
+
+  plates.forEach(
+    plate => {
+      const expectedDP =
+        calculateExpectedDP(
+          pipeID,
+          currentBore,
+          currentDP,
+          plate
+        );
+
+      const beta =
+        plate / pipeID;
+
+      const selected =
+        Math.abs(
+          plate -
+          recommendedPlate
+        ) < 0.00001;
+
+      html += `
+        <div
+          class="table-row ${
+            selected
+              ? "selected"
+              : ""
+          }"
+        >
+
+          <span>
+
+            <strong>
+              ${fractionFromDecimal(
+                plate
+              )}
+            </strong>
+
+            <br>
+
+            <small>
+              ${formatNumber(
+                plate,
+                4
+              )} in
+            </small>
+
+          </span>
+
+          <span>
+
+            ${formatNumber(
+              expectedDP,
+              2
+            )}
+
+            ${
+              unit === "inH2O"
+                ? "inH₂O"
+                : unit
+            }
+
+          </span>
+
+          <span>
+            ${formatNumber(
+              beta,
+              3
+            )}
+          </span>
+
+        </div>
+      `;
+    }
+  );
+
+  container.innerHTML =
+    html;
+}
