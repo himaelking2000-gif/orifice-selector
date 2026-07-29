@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#07111f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  >
+
+  <title>Well Test Orifice Pro</title>
+
+  <link rel="stylesheet" href="pro.css">
+</head>
+
+<body>
+
+<div class="app-shell">
+
+  <header class="top-header">
+
+    <div>
+      <div class="eyebrow">
+        WELL TEST ENGINEERING TOOL
+      </div>
+
+      <h1>
+        Orifice Pro
+      </h1>
+    </div>
+
+    <button
+      class="theme-button"
+      type="button"
+      onclick="toggleTheme()"
+    >
+      ◐
+    </button>
+
+  </header>
+
+
+  <main>
+
+    <!-- PLATE SELECTOR -->
+
+    <section id="selectorPage" class="page active-page">
+
+      <div class="card">
+
+        <div class="section-heading">
+          <h2>Plate Selector</h2>
+
+          <p>
+            Select a new orifice plate using the current
+            differential pressure.
+          </p>
+        </div>
+
+        <div class="field">
+
+          <label for="selectorJobName">
+            Job / Well Name
+          </label>
+
+          <input
+            id="selectorJobName"
+            class="input-control"
+            type="text"
+            placeholder="Optional"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="selectorPipeID">
+            Pipe / Meter Tube I.D.
+          </label>
+
+          <div class="input-with-unit">
+
+            <input
+              id="selectorPipeID"
+              type="number"
+              inputmode="decimal"
+              value="4.026"
+              step="0.001"
+            >
+
+            <span>inch</span>
+
+          </div>
+
+          <div class="preset-grid">
+
+            <button
+              type="button"
+              onclick="setSelectorPipe(1.049)"
+            >
+              1"
+            </button>
+
+            <button
+              type="button"
+              onclick="setSelectorPipe(2.067)"
+            >
+              2"
+            </button>
+
+            <button
+              type="button"
+              onclick="setSelectorPipe(3.068)"
+            >
+              3"
+            </button>
+
+            <button
+              type="button"
+              onclick="setSelectorPipe(4.026)"
+            >
+              4"
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="field">
+
+          <label for="selectorCurrentPlate">
+            Current Orifice Bore
+          </label>
+
+          <div class="input-with-unit">
+
+            <input
+              id="selectorCurrentPlate"
+              type="number"
+              inputmode="decimal"
+              value="1.625"
+              step="0.0625"
+            >
+
+            <span>inch</span>
+
+          </div>
+
+          <div class="two-button-grid">
+
+            <button
+              type="button"
+              onclick="stepSelectorPlate(-1)"
+            >
+              − 1/16"
+            </button>
+
+            <button
+              type="button"
+              onclick="stepSelectorPlate(1)"
+            >
+              + 1/16"
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="two-column-grid">
+
+          <div class="field">
+
+            <label for="selectorCurrentDP">
+              Current DP
+            </label>
+
+            <div class="input-with-unit">
+
+              <input
+                id="selectorCurrentDP"
+                type="number"
+                inputmode="decimal"
+                value="60"
+                step="0.1"
+              >
+
+              <span class="selector-dp-unit">
+                inH₂O
+              </span>
+
+            </div>
+
+          </div>
+
+          <div class="field">
+
+            <label for="selectorTargetDP">
+              Desired DP
+            </label>
+
+            <div class="input-with-unit">
+
+              <input
+                id="selectorTargetDP"
+                type="number"
+                inputmode="decimal"
+                value="170"
+                step="0.1"
+              >
+
+              <span class="selector-dp-unit">
+                inH₂O
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="field">
+
+          <label for="selectorDPUnit">
+            DP Unit
+          </label>
+
+          <select
+            id="selectorDPUnit"
+            class="input-control"
+            onchange="updateSelectorDPUnit()"
+          >
+
+            <option value="inH2O">
+              inH₂O
+            </option>
+
+            <option value="psi">
+              psi
+            </option>
+
+            <option value="kPa">
+              kPa
+            </option>
+
+          </select>
+
+        </div>
+
+        <button
+          class="primary-button"
+          type="button"
+          onclick="calculatePlateSelector()"
+        >
+          CALCULATE NEW PLATE
+        </button>
+
+        <div
+          id="selectorError"
+          class="error-box"
+        ></div>
+
+      </div>
+
+
+      <div
+        id="selectorResultCard"
+        class="card result-card"
+      >
+
+        <div class="hero-result">
+
+          <span>
+            Recommended Standard Plate
+          </span>
+
+          <strong id="selectorRecommendedPlate">
+            —
+          </strong>
+
+          <small id="selectorRecommendedFraction">
+            —
+          </small>
+
+        </div>
+
+        <div class="result-grid">
+
+          <div class="result-box">
+            <span>Calculated Bore</span>
+            <strong id="selectorCalculatedBore">—</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Expected DP</span>
+            <strong id="selectorExpectedDP">—</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Beta Ratio</span>
+            <strong id="selectorBeta">—</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Status</span>
+            <strong id="selectorStatus">—</strong>
+          </div>
+
+        </div>
+
+        <div class="action-grid">
+
+          <button
+            type="button"
+            onclick="saveSelectorResult()"
+          >
+            Save
+          </button>
+
+          <button
+            type="button"
+            onclick="shareSelectorResult()"
+          >
+            Share
+          </button>
+
+        </div>
+
+        <h3 class="table-title">
+          Nearby Standard Plates
+        </h3>
+
+        <div
+          id="selectorPlateTable"
+          class="data-table"
+        ></div>
+
+      </div>
+
+    </section>
+
+
+    <!-- GAS FLOW CALCULATOR -->
+
+    <section id="gasPage" class="page">
+
+      <div class="card">
+
+        <div class="section-heading">
+          <h2>Gas Flow Calculator</h2>
+
+          <p>
+            Estimate gas flow through an orifice meter.
+          </p>
+        </div>
+
+        <div class="warning-banner">
+          Field engineering estimate only. Verify results
+          against your approved AGA/API calculation software.
+        </div>
+
+        <div class="field">
+
+          <label for="gasJobName">
+            Job / Well Name
+          </label>
+
+          <input
+            id="gasJobName"
+            class="input-control"
+            type="text"
+            placeholder="Optional"
+          >
+
+        </div>
+
+        <div class="two-column-grid">
+
+          <div class="field">
+
+            <label for="gasPipeID">
+              Pipe I.D.
+            </label>
+
+            <div class="input-with-unit">
+
+              <input
+                id="gasPipeID"
+                type="number"
+                inputmode="decimal"
+                value="4.026"
+                step="0.001"
+              >
+
+              <span>inch</span>
+
+            </div>
+
+          </div>
+
+          <div class="field">
+
+            <label for="gasOrifice">
+              Orifice Bore
+            </label>
+
+            <div class="input-with-unit">
+
+              <input
+                id="gasOrifice"
+                type="number"
+                inputmode="decimal"
+                value="1.500"
+                step="0.001"
+              >
+
+              <span>inch</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="two-column-grid">
+
+          <div class="field">
+
+            <label for="gasDP">
+              Differential Pressure
+            </label>
+
+            <div class="input-with-unit">
+
+              <input
+                id="gasDP"
+                type="number"
+                inputmode="decimal"
+                value="100"
+                step="0.1"
+              >
+
+              <span>inH₂O</span>
+
+            </div>
+
+          </div>
+
+          <div class="field">
+
+            <label for="gasStaticPressure">
+              Static Pressure
+            </label>
+
+            <div class="input-with-unit">
+
+              <input
+                id="gasStaticPressure"
+                type="number"
+                inputmode="decimal"
+                value="500"
+                step="0.1"
+              >
+
+              <span>psig</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="two-column-grid">
+
+          <div class="field">
+
+            <label for="gasTemperature">
+              Flowing Temperature
+            </label>
+
+            <div class="input-with-unit">
+
+              <input
+                id="gasTemperature"
+                type="number"
+                inputmode="decimal"
+                value="80"
+                step="0.1"
+              >
+
+              <span>°F</span>
+
+            </div>
+
+          </div>
+
+          <div class="field">
+
+            <label for="gasSpecificGravity">
+              Gas Specific Gravity
+            </label>
+
+            <input
+              id="gasSpecificGravity"
+              class="input-control"
+              type="number"
+              inputmode="decimal"
+              value="0.65"
+              step="0.001"
+            >
+
+          </div>
+
+        </div>
+
+        <div class="two-column-grid">
+
+          <div class="field">
+
+            <label for="gasZ">
+              Compressibility Factor Z
+            </label>
+
+            <input
+              id="gasZ"
+              class="input-control"
+              type="number"
+              inputmode="decimal"
+              value="0.90"
+              step="0.001"
+            >
+
+          </div>
+
+          <div class="field">
+
+            <label for="gasK">
+              Isentropic Exponent k
+            </label>
+
+            <input
+              id="gasK"
+              class="input-control"
+              type="number"
+              inputmode="decimal"
+              value="1.30"
+              step="0.01"
+            >
+
+          </div>
+
+        </div>
+
+        <div class="two-column-grid">
+
+          <div class="field">
+
+            <label for="gasCd">
+              Discharge Coefficient Cd
+            </label>
+
+            <input
+              id="gasCd"
+              class="input-control"
+              type="number"
+              inputmode="decimal"
+              value="0.61"
+              step="0.001"
+            >
+
+          </div>
+
+          <div class="field">
+
+            <label for="gasBasePressure">
+              Base Pressure
+            </label>
+
+            <div class="input-with-unit">
+
+              <input
+                id="gasBasePressure"
+                type="number"
+                inputmode="decimal"
+                value="14.73"
+                step="0.01"
+              >
+
+              <span>psia</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="field">
+
+          <label for="gasBaseTemperature">
+            Base Temperature
+          </label>
+
+          <div class="input-with-unit">
+
+            <input
+              id="gasBaseTemperature"
+              type="number"
+              inputmode="decimal"
+              value="60"
+              step="0.1"
+            >
+
+            <span>°F</span>
+
+          </div>
+
+        </div>
+
+        <button
+          class="primary-button"
+          type="button"
+          onclick="calculateGasFlow()"
+        >
+          CALCULATE GAS FLOW
+        </button>
+
+        <div
+          id="gasError"
+          class="error-box"
+        ></div>
+
+      </div>
+
+
+      <div
+        id="gasResultCard"
+        class="card result-card"
+      >
+
+        <div class="hero-result">
+
+          <span>
+            Estimated Gas Flow
+          </span>
+
+          <strong id="gasMMSCFD">
+            —
+          </strong>
+
+          <small>
+            MMSCFD
+          </small>
+
+        </div>
+
+        <div class="result-grid">
+
+          <div class="result-box">
+            <span>MSCFD</span>
+            <strong id="gasMSCFD">—</strong>
+          </div>
+
+          <div class="result-box">
+            <span>ACFM</span>
+            <strong id="gasACFM">—</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Beta Ratio</span>
+            <strong id="gasBeta">—</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Expansion Factor</span>
+            <strong id="gasExpansion">—</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Gas Density</span>
+            <strong id="gasDensity">—</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Bore Velocity</span>
+            <strong id="gasVelocity">—</strong>
+          </div>
+
+        </div>
+
+        <div
+          id="gasWarnings"
+          class="warning-list"
+        ></div>
+
+        <div class="action-grid">
+
+          <button
+            type="button"
+            onclick="saveGasResult()"
+          >
+            Save
+          </button>
+
+          <button
+            type="button"
+            onclick="shareGasResult()"
+          >
+            Share
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- HISTORY -->
+
+    <section id="historyPage" class="page">
+
+      <div class="card">
+
+        <div class="section-heading row-heading">
+
+          <div>
+            <h2>History</h2>
+            <p>
+              Saved calculations on this device.
+            </p>
+          </div>
+
+          <button
+            class="danger-button"
+            type="button"
+            onclick="clearAllHistory()"
+          >
+            Clear
+          </button>
+
+        </div>
+
+        <div
+          id="historyList"
+          class="history-list"
+        ></div>
+
+      </div>
+
+    </section>
+
+
+    <!-- PLATE LIBRARY -->
+
+    <section id="platesPage" class="page">
+
+      <div class="card">
+
+        <div class="section-heading">
+          <h2>American Plate Library</h2>
+
+          <p>
+            Plate sizes in 1/16 inch increments.
+          </p>
+        </div>
+
+        <div class="field">
+
+          <label for="plateLibraryPipeID">
+            Pipe I.D.
+          </label>
+
+          <div class="input-with-unit">
+
+            <input
+              id="plateLibraryPipeID"
+              type="number"
+              inputmode="decimal"
+              value="4.026"
+              step="0.001"
+              oninput="renderPlateLibrary()"
+            >
+
+            <span>inch</span>
+
+          </div>
+
+        </div>
+
+        <div
+          id="plateLibraryTable"
+          class="data-table"
+        ></div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SETTINGS -->
+
+    <section id="settingsPage" class="page">
+
+      <div class="card">
+
+        <div class="section-heading">
+          <h2>Settings</h2>
+
+          <p>
+            Application and warning limits.
+          </p>
+        </div>
+
+        <div class="two-column-grid">
+
+          <div class="field">
+
+            <label for="minimumBeta">
+              Minimum Beta
+            </label>
+
+            <input
+              id="minimumBeta"
+              class="input-control"
+              type="number"
+              value="0.20"
+              step="0.01"
+            >
+
+          </div>
+
+          <div class="field">
+
+            <label for="maximumBeta">
+              Maximum Beta
+            </label>
+
+            <input
+              id="maximumBeta"
+              class="input-control"
+              type="number"
+              value="0.75"
+              step="0.01"
+            >
+
+          </div>
+
+        </div>
+
+        <button
+          class="primary-button"
+          type="button"
+          onclick="saveProSettings()"
+        >
+          SAVE SETTINGS
+        </button>
+
+      </div>
+
+      <div class="card about-card">
+
+        <div class="eyebrow">
+          APPLICATION
+        </div>
+
+        <h2>
+          Well Test Orifice Pro
+        </h2>
+
+        <p>
+          Gas Edition 1.0
+        </p>
+
+        <p class="small-note">
+          Field estimate only. Not a certified custody-transfer
+          calculation.
+        </p>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <nav class="bottom-nav">
+
+    <button
+      id="selectorNav"
+      class="active-nav"
+      type="button"
+      onclick="openProPage('selector')"
+    >
+      <span>⌂</span>
+      Selector
+    </button>
+
+    <button
+      id="gasNav"
+      type="button"
+      onclick="openProPage('gas')"
+    >
+      <span>◎</span>
+      Gas Flow
+    </button>
+
+    <button
+      id="historyNav"
+      type="button"
+      onclick="openProPage('history')"
+    >
+      <span>▤</span>
+      History
+    </button>
+
+    <button
+      id="platesNav"
+      type="button"
+      onclick="openProPage('plates')"
+    >
+      <span>≡</span>
+      Plates
+    </button>
+
+    <button
+      id="settingsNav"
+      type="button"
+      onclick="openProPage('settings')"
+    >
+      <span>⚙</span>
+      Settings
+    </button>
+
+  </nav>
+
+</div>
+
+<script src="pro.js"></script>
+
+</body>
+</html>
