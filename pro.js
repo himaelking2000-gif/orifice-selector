@@ -1376,3 +1376,452 @@ function renderGasWarnings(
       })
       .join("");
 }
+/* =========================================================
+   HISTORY
+========================================================= */
+
+function getHistory() {
+  try {
+    const saved =
+      localStorage.getItem(
+        "gasWellHistory"
+      );
+
+    return saved
+      ? JSON.parse(saved)
+      : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function setHistory(history) {
+  localStorage.setItem(
+    "gasWellHistory",
+    JSON.stringify(history)
+  );
+}
+
+function saveSelectorResult() {
+  if (!lastSelectorResult) {
+    showError(
+      "selectorError",
+      "Calculate a plate result before saving."
+    );
+
+    return;
+  }
+
+  const history =
+    getHistory();
+
+  history.unshift({
+    id:
+      Date.now(),
+
+    ...lastSelectorResult
+  });
+
+  setHistory(
+    history.slice(0, 100)
+  );
+
+  renderHistory();
+
+  showToast(
+    "Plate selector result saved."
+  );
+}
+
+function saveGasResult() {
+  if (!lastGasResult) {
+    showError(
+      "gasError",
+      "Calculate gas flow before saving."
+    );
+
+    return;
+  }
+
+  const history =
+    getHistory();
+
+  history.unshift({
+    id:
+      Date.now(),
+
+    ...lastGasResult
+  });
+
+  setHistory(
+    history.slice(0, 100)
+  );
+
+  renderHistory();
+
+  showToast(
+    "Gas flow result saved."
+  );
+}
+
+function deleteHistoryItem(id) {
+  const updatedHistory =
+    getHistory().filter(
+      item =>
+        String(item.id) !==
+        String(id)
+    );
+
+  setHistory(
+    updatedHistory
+  );
+
+  renderHistory();
+}
+
+function clearAllHistory() {
+  const history =
+    getHistory();
+
+  if (!history.length) {
+    showToast(
+      "History is already empty."
+    );
+
+    return;
+  }
+
+  const confirmed =
+    window.confirm(
+      "Delete all saved history?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  localStorage.removeItem(
+    "gasWellHistory"
+  );
+
+  renderHistory();
+
+  showToast(
+    "History cleared."
+  );
+}
+
+function renderHistory() {
+  const container =
+    el("historyList");
+
+  if (!container) {
+    return;
+  }
+
+  const history =
+    getHistory();
+
+  if (!history.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <strong>No saved results</strong>
+        <span>
+          Saved calculations will appear here.
+        </span>
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML =
+    history
+      .map(item => {
+        if (
+          item.type ===
+          "Gas Flow"
+        ) {
+          return `
+            <article class="history-card">
+              <div class="history-card-head">
+                <div>
+                  <span class="history-type">
+                    Gas Flow
+                  </span>
+
+                  <h3>
+                    ${safeText(
+                      item.jobName ||
+                      "Unnamed Job"
+                    )}
+                  </h3>
+
+                  <small>
+                    ${safeText(
+                      item.timestamp ||
+                      ""
+                    )}
+                  </small>
+                </div>
+
+                <button
+                  class="icon-button danger-button"
+                  type="button"
+                  onclick="deleteHistoryItem('${item.id}')"
+                  aria-label="Delete result"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div class="history-values">
+                <div>
+                  <span>Flow</span>
+                  <strong>
+                    ${formatNumber(
+                      item.mmscfd,
+                      3
+                    )} MMSCFD
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Plate</span>
+                  <strong>
+                    ${formatNumber(
+                      item.orificeIn,
+                      3
+                    )} in
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Beta</span>
+                  <strong>
+                    ${formatNumber(
+                      item.beta,
+                      3
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>DP</span>
+                  <strong>
+                    ${formatNumber(
+                      item.dpInH2O,
+                      1
+                    )} inH₂O
+                  </strong>
+                </div>
+              </div>
+            </article>
+          `;
+        }
+
+        return `
+          <article class="history-card">
+            <div class="history-card-head">
+              <div>
+                <span class="history-type">
+                  Plate Selector
+                </span>
+
+                <h3>
+                  ${safeText(
+                    item.jobName ||
+                    "Unnamed Job"
+                  )}
+                </h3>
+
+                <small>
+                  ${safeText(
+                    item.timestamp ||
+                    ""
+                  )}
+                </small>
+              </div>
+
+              <button
+                class="icon-button danger-button"
+                type="button"
+                onclick="deleteHistoryItem('${item.id}')"
+                aria-label="Delete result"
+              >
+                ×
+              </button>
+            </div>
+
+            <div class="history-values">
+              <div>
+                <span>Recommended plate</span>
+                <strong>
+                  ${formatNumber(
+                    item.recommendedPlateIn,
+                    3
+                  )} in
+                </strong>
+              </div>
+
+              <div>
+                <span>Pipe ID</span>
+                <strong>
+                  ${formatNumber(
+                    item.pipeIDIn,
+                    3
+                  )} in
+                </strong>
+              </div>
+
+              <div>
+                <span>Beta</span>
+                <strong>
+                  ${formatNumber(
+                    item.beta,
+                    3
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>Status</span>
+                <strong>
+                  ${safeText(
+                    item.status ||
+                    ""
+                  )}
+                </strong>
+              </div>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+}
+
+/* =========================================================
+   SHARE RESULTS
+========================================================= */
+
+async function shareSelectorResult() {
+  if (!lastSelectorResult) {
+    showError(
+      "selectorError",
+      "Calculate a plate result before sharing."
+    );
+
+    return;
+  }
+
+  const result =
+    lastSelectorResult;
+
+  const text = [
+    "Orifice Plate Selector",
+    `Job: ${result.jobName}`,
+    `Pipe ID: ${formatNumber(
+      result.pipeIDIn,
+      3
+    )} in`,
+    `Recommended Plate: ${formatNumber(
+      result.recommendedPlateIn,
+      3
+    )} in`,
+    `Beta Ratio: ${formatNumber(
+      result.beta,
+      3
+    )}`,
+    `Status: ${result.status}`,
+    `Date: ${result.timestamp}`
+  ].join("\n");
+
+  await shareText(
+    "Orifice Plate Result",
+    text
+  );
+}
+
+async function shareGasResult() {
+  if (!lastGasResult) {
+    showError(
+      "gasError",
+      "Calculate gas flow before sharing."
+    );
+
+    return;
+  }
+
+  const result =
+    lastGasResult;
+
+  const text = [
+    "Gas Flow Calculation",
+    `Job: ${result.jobName}`,
+    `Flow: ${formatNumber(
+      result.mmscfd,
+      3
+    )} MMSCFD`,
+    `Flow: ${formatNumber(
+      result.mscfd,
+      1
+    )} MSCFD`,
+    `Pipe ID: ${formatNumber(
+      result.pipeIDIn,
+      3
+    )} in`,
+    `Orifice: ${formatNumber(
+      result.orificeIn,
+      3
+    )} in`,
+    `DP: ${formatNumber(
+      result.dpInH2O,
+      1
+    )} inH₂O`,
+    `Beta Ratio: ${formatNumber(
+      result.beta,
+      3
+    )}`,
+    `Date: ${result.timestamp}`
+  ].join("\n");
+
+  await shareText(
+    "Gas Flow Result",
+    text
+  );
+}
+
+async function shareText(
+  title,
+  text
+) {
+  try {
+    if (
+      navigator.share
+    ) {
+      await navigator.share({
+        title,
+        text
+      });
+
+      return;
+    }
+
+    await navigator.clipboard.writeText(
+      text
+    );
+
+    showToast(
+      "Result copied to clipboard."
+    );
+  } catch (error) {
+    if (
+      error.name !==
+      "AbortError"
+    ) {
+      showToast(
+        "Unable to share the result."
+      );
+    }
+  }
+}
