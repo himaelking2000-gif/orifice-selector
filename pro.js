@@ -1167,3 +1167,212 @@ function calculateGasFlow() {
   const boreVelocityFeetSecond =
     boreVelocityMeterSecond *
     3.280839895;
+      if (el("gasMMSCFD")) {
+    el("gasMMSCFD").textContent =
+      formatNumber(
+        mmscfd,
+        3
+      );
+  }
+
+  if (el("gasMSCFD")) {
+    el("gasMSCFD").textContent =
+      formatNumber(
+        mscfd,
+        1
+      );
+  }
+
+  if (el("gasACFM")) {
+    el("gasACFM").textContent =
+      formatNumber(
+        acfm,
+        1
+      );
+  }
+
+  if (el("gasBeta")) {
+    el("gasBeta").textContent =
+      formatNumber(
+        beta,
+        3
+      );
+  }
+
+  if (el("gasExpansion")) {
+    el("gasExpansion").textContent =
+      formatNumber(
+        expansionFactor,
+        4
+      );
+  }
+
+  if (el("gasDensity")) {
+    el("gasDensity").textContent =
+      `${formatNumber(
+        gasDensity,
+        3
+      )} kg/m³`;
+  }
+
+  if (el("gasVelocity")) {
+    el("gasVelocity").textContent =
+      `${formatNumber(
+        boreVelocityFeetSecond,
+        1
+      )} ft/s`;
+  }
+
+  const warnings = [];
+
+  const status =
+    betaStatus(beta);
+
+  warnings.push({
+    level:
+      status.text === "Acceptable"
+        ? "success"
+        : status.text === "Above limit"
+          ? "danger"
+          : "warning",
+
+    text:
+      `Beta ratio ${formatNumber(
+        beta,
+        3
+      )}: ${status.text}.`
+  });
+
+  if (
+    differentialPressureRatio > 0.10
+  ) {
+    warnings.push({
+      level: "warning",
+
+      text:
+        "DP is high compared with absolute pressure. Verify using approved engineering software."
+    });
+  }
+
+  if (dpInH2O > 400) {
+    warnings.push({
+      level: "warning",
+
+      text:
+        "High differential pressure entered. Confirm transmitter range and units."
+    });
+  }
+
+  if (
+    boreVelocityFeetSecond > 300
+  ) {
+    warnings.push({
+      level: "warning",
+
+      text:
+        "Estimated bore velocity is high. Check noise, erosion and vibration limits."
+    });
+  }
+
+  if (
+    z < 0.70 ||
+    z > 1.20
+  ) {
+    warnings.push({
+      level: "warning",
+
+      text:
+        "Compressibility factor is unusual. Confirm the Z value at flowing conditions."
+    });
+  }
+
+  renderGasWarnings(
+    warnings
+  );
+
+  lastGasResult = {
+    type: "Gas Flow",
+
+    timestamp:
+      currentTimestamp(),
+
+    jobName:
+      el(
+        "gasJobName"
+      )?.value.trim() ||
+      "Unnamed Job",
+
+    pipeIDIn,
+    orificeIn,
+    dpInH2O,
+    staticPsig,
+    temperatureF,
+    gasSpecificGravity,
+    z,
+    k,
+    cd,
+    basePressurePsia,
+    baseTemperatureF,
+    absolutePressurePsia,
+    beta,
+    expansionFactor,
+    gasDensity,
+    massFlowKgSecond,
+    mmscfd,
+    mscfd,
+    acfm,
+    boreVelocityFeetSecond,
+
+    status:
+      status.text
+  };
+
+  showCard(
+    "gasResultCard"
+  );
+
+  el(
+    "gasResultCard"
+  )?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+function renderGasWarnings(
+  warnings
+) {
+  const container =
+    el("gasWarnings");
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML =
+    warnings
+      .map(item => {
+        let className = "";
+
+        if (
+          item.level === "danger"
+        ) {
+          className = "danger";
+        }
+
+        if (
+          item.level === "success"
+        ) {
+          className = "success";
+        }
+
+        return `
+          <div
+            class="warning-item ${className}"
+          >
+            ${safeText(item.text)}
+          </div>
+        `;
+      })
+      .join("");
+}
