@@ -1825,3 +1825,241 @@ async function shareText(
     }
   }
 }
+/* =========================================================
+   ORIFICE PLATE LIBRARY
+========================================================= */
+
+function renderPlateLibrary() {
+  const container =
+    el("plateLibrary");
+
+  if (!container) {
+    return;
+  }
+
+  const plates = [
+    0.250,
+    0.3125,
+    0.375,
+    0.4375,
+    0.500,
+    0.5625,
+    0.625,
+    0.6875,
+    0.750,
+    0.8125,
+    0.875,
+    0.9375,
+    1.000,
+    1.0625,
+    1.125,
+    1.1875,
+    1.250,
+    1.3125,
+    1.375,
+    1.4375,
+    1.500,
+    1.5625,
+    1.625,
+    1.6875,
+    1.750,
+    1.8125,
+    1.875,
+    1.9375,
+    2.000,
+    2.125,
+    2.250,
+    2.375,
+    2.500,
+    2.625,
+    2.750,
+    2.875,
+    3.000,
+    3.125,
+    3.250,
+    3.375,
+    3.500,
+    3.625,
+    3.750,
+    3.875,
+    4.000
+  ];
+
+  container.innerHTML =
+    plates
+      .map(plate => `
+        <button
+          type="button"
+          class="plate-library-item"
+          onclick="selectLibraryPlate(${plate})"
+        >
+          <strong>
+            ${formatNumber(plate, 4)}
+          </strong>
+
+          <span>inch</span>
+        </button>
+      `)
+      .join("");
+}
+
+function selectLibraryPlate(plate) {
+  const selectorInput =
+    el("selectorPlate");
+
+  const gasInput =
+    el("gasOrifice");
+
+  if (selectorInput) {
+    selectorInput.value =
+      plate;
+  }
+
+  if (gasInput) {
+    gasInput.value =
+      plate;
+  }
+
+  showToast(
+    `${formatNumber(
+      plate,
+      4
+    )} in plate selected.`
+  );
+}
+
+/* =========================================================
+   SETTINGS INITIALIZATION
+========================================================= */
+
+function loadProSettings() {
+  try {
+    const saved =
+      JSON.parse(
+        localStorage.getItem(
+          "gasWellSettings"
+        ) || "{}"
+      );
+
+    if (
+      saved.theme === "dark" ||
+      saved.theme === "light"
+    ) {
+      document.documentElement.setAttribute(
+        "data-theme",
+        saved.theme
+      );
+    }
+
+    const settingsMap = {
+      settingsCompany:
+        saved.company,
+
+      settingsEngineer:
+        saved.engineer,
+
+      settingsDefaultDPUnit:
+        saved.dpUnit,
+
+      settingsDefaultPipe:
+        saved.defaultPipe
+    };
+
+    Object.entries(
+      settingsMap
+    ).forEach(
+      ([id, value]) => {
+        const input =
+          el(id);
+
+        if (
+          input &&
+          value !== undefined &&
+          value !== null
+        ) {
+          input.value =
+            value;
+        }
+      }
+    );
+
+    if (
+      saved.dpUnit &&
+      el("selectorDPUnit")
+    ) {
+      el(
+        "selectorDPUnit"
+      ).value =
+        saved.dpUnit;
+    }
+  } catch (error) {
+    console.warn(
+      "Unable to load settings.",
+      error
+    );
+  }
+}
+
+/* =========================================================
+   APPLICATION STARTUP
+========================================================= */
+
+function initializeProApp() {
+  loadProSettings();
+
+  renderHistory();
+
+  renderPlateLibrary();
+
+  updateSelectorDPUnit();
+
+  const firstPage =
+    document.querySelector(
+      ".pro-page"
+    );
+
+  if (
+    firstPage &&
+    !document.querySelector(
+      ".pro-page.active"
+    )
+  ) {
+    firstPage.classList.add(
+      "active"
+    );
+  }
+
+  document
+    .querySelectorAll(
+      "input[type='number']"
+    )
+    .forEach(input => {
+      input.addEventListener(
+        "keydown",
+        event => {
+          if (
+            event.key ===
+            "Enter"
+          ) {
+            input.blur();
+          }
+        }
+      );
+    });
+
+  console.log(
+    "Gas Well Testing Pro initialized."
+  );
+}
+
+if (
+  document.readyState ===
+  "loading"
+) {
+  document.addEventListener(
+    "DOMContentLoaded",
+    initializeProApp
+  );
+} else {
+  initializeProApp();
+}
