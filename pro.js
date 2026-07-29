@@ -901,3 +901,269 @@ function renderSelectorPlateTable(
   container.innerHTML =
     html;
 }
+/* =========================================================
+   GAS FLOW CALCULATOR
+   Engineering estimate only.
+========================================================= */
+
+function calculateGasFlow() {
+  clearError("gasError");
+  hideCard("gasResultCard");
+
+  const pipeIDIn =
+    getNumber("gasPipeID");
+
+  const orificeIn =
+    getNumber("gasOrifice");
+
+  const dpInH2O =
+    getNumber("gasDP");
+
+  const staticPsig =
+    getNumber("gasStaticPressure");
+
+  const temperatureF =
+    getNumber("gasTemperature");
+
+  const gasSpecificGravity =
+    getNumber("gasSpecificGravity");
+
+  const z =
+    getNumber("gasZ");
+
+  const k =
+    getNumber("gasK");
+
+  const cd =
+    getNumber("gasCd");
+
+  const basePressurePsia =
+    getNumber("gasBasePressure");
+
+  const baseTemperatureF =
+    getNumber("gasBaseTemperature");
+
+  const inputValues = [
+    pipeIDIn,
+    orificeIn,
+    dpInH2O,
+    staticPsig,
+    temperatureF,
+    gasSpecificGravity,
+    z,
+    k,
+    cd,
+    basePressurePsia,
+    baseTemperatureF
+  ];
+
+  if (
+    inputValues.some(
+      value => !Number.isFinite(value)
+    )
+  ) {
+    showError(
+      "gasError",
+      "Enter valid numeric values."
+    );
+
+    return;
+  }
+
+  if (
+    pipeIDIn <= 0 ||
+    orificeIn <= 0 ||
+    orificeIn >= pipeIDIn
+  ) {
+    showError(
+      "gasError",
+      "Orifice bore must be smaller than the pipe ID."
+    );
+
+    return;
+  }
+
+  if (
+    dpInH2O <= 0 ||
+    staticPsig < 0 ||
+    gasSpecificGravity <= 0 ||
+    z <= 0 ||
+    k <= 1 ||
+    cd <= 0 ||
+    cd > 1 ||
+    basePressurePsia <= 0
+  ) {
+    showError(
+      "gasError",
+      "One or more values are outside the valid range."
+    );
+
+    return;
+  }
+
+  const inchToMeter =
+    0.0254;
+
+  const psiToPascal =
+    6894.757293;
+
+  const inH2OToPascal =
+    249.08891;
+
+  const pipeID =
+    pipeIDIn * inchToMeter;
+
+  const orifice =
+    orificeIn * inchToMeter;
+
+  const beta =
+    orifice / pipeID;
+
+  const orificeArea =
+    Math.PI *
+    orifice ** 2 /
+    4;
+
+  const absolutePressurePsia =
+    staticPsig + 14.6959;
+
+  const absolutePressurePascal =
+    absolutePressurePsia *
+    psiToPascal;
+
+  const differentialPressurePascal =
+    dpInH2O *
+    inH2OToPascal;
+
+  const flowingTemperatureKelvin =
+    (temperatureF + 459.67) *
+    5 / 9;
+
+  const airMolecularWeight =
+    28.96546e-3;
+
+  const gasMolecularWeight =
+    gasSpecificGravity *
+    airMolecularWeight;
+
+  const universalGasConstant =
+    8.314462618;
+
+  const gasDensity =
+    (
+      absolutePressurePascal *
+      gasMolecularWeight
+    ) /
+    (
+      z *
+      universalGasConstant *
+      flowingTemperatureKelvin
+    );
+
+  const differentialPressureRatio =
+    clamp(
+      differentialPressurePascal /
+      absolutePressurePascal,
+      0,
+      0.95
+    );
+
+  const expansionFactor =
+    clamp(
+      1 -
+      (
+        0.351 +
+        0.256 * beta ** 4 +
+        0.93 * beta ** 8
+      ) *
+      differentialPressureRatio /
+      k,
+      0.50,
+      1
+    );
+
+  const denominator =
+    1 - beta ** 4;
+
+  if (
+    denominator <= 0 ||
+    gasDensity <= 0
+  ) {
+    showError(
+      "gasError",
+      "Unable to calculate gas flow from these inputs."
+    );
+
+    return;
+  }
+
+  const massFlowKgSecond =
+    cd *
+    expansionFactor *
+    orificeArea *
+    Math.sqrt(
+      (
+        2 *
+        gasDensity *
+        differentialPressurePascal
+      ) /
+      denominator
+    );
+
+  const baseTemperatureKelvin =
+    (baseTemperatureF + 459.67) *
+    5 / 9;
+
+  const basePressurePascal =
+    basePressurePsia *
+    psiToPascal;
+
+  const baseGasDensity =
+    (
+      basePressurePascal *
+      gasMolecularWeight
+    ) /
+    (
+      universalGasConstant *
+      baseTemperatureKelvin
+    );
+
+  const standardM3Second =
+    massFlowKgSecond /
+    baseGasDensity;
+
+  const cubicFeetPerCubicMeter =
+    35.3146667;
+
+  const secondsPerDay =
+    86400;
+
+  const standardCubicFeetDay =
+    standardM3Second *
+    cubicFeetPerCubicMeter *
+    secondsPerDay;
+
+  const mscfd =
+    standardCubicFeetDay /
+    1000;
+
+  const mmscfd =
+    standardCubicFeetDay /
+    1000000;
+
+  const actualM3Second =
+    massFlowKgSecond /
+    gasDensity;
+
+  const acfm =
+    actualM3Second *
+    cubicFeetPerCubicMeter *
+    60;
+
+  const boreVelocityMeterSecond =
+    actualM3Second /
+    orificeArea;
+
+  const boreVelocityFeetSecond =
+    boreVelocityMeterSecond *
+    3.280839895;
