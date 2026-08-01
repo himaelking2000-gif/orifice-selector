@@ -132,6 +132,13 @@
               4"
             </button>
 
+            <button
+              type="button"
+              onclick="setSelectorPipe(6.065)"
+            >
+              6"
+            </button>
+
           </div>
 
         </div>
@@ -364,8 +371,7 @@
         </div>
 
         <div class="warning-banner">
-          Field engineering estimate only. Verify results
-          against your approved AGA/API calculation software.
+          Integrated AGA-3 development engine. Flange taps are default. Validate results against approved company software before field or official use.
         </div>
 
         <div class="field">
@@ -560,6 +566,32 @@
 
         </div>
 
+        <div class="field">
+
+          <label for="gasViscosity">
+            Dynamic Viscosity
+          </label>
+
+          <div class="input-with-unit">
+
+            <input
+              id="gasViscosity"
+              type="number"
+              inputmode="decimal"
+              value="0.011"
+              step="0.001"
+            >
+
+            <span>cP</span>
+
+          </div>
+
+          <p class="small-note">
+            Required for Reynolds number and automatic AGA-3 discharge coefficient.
+          </p>
+
+        </div>
+
         <div class="two-column-grid">
 
           <div class="field">
@@ -573,9 +605,14 @@
               class="input-control"
               type="number"
               inputmode="decimal"
-              value="0.61"
-              step="0.001"
+              value="0.610"
+              step="0.0001"
             >
+
+            <p class="small-note">
+              Flange taps: calculated automatically by AGA-3 RG iteration.
+              Pipe taps: entered value is used as a legacy/manual input.
+            </p>
 
           </div>
 
@@ -820,6 +857,33 @@
           </p>
         </div>
 
+        <div class="field">
+
+          <label for="tapType">
+            Pressure Tap Type
+          </label>
+
+          <select
+            id="tapType"
+            class="input-control"
+            onchange="previewTapTypeLimits()"
+          >
+            <option value="flange" selected>
+              Flange Taps (Default)
+            </option>
+
+            <option value="pipe">
+              Pipe Taps (Legacy / Manual Cd)
+            </option>
+          </select>
+
+          <p class="small-note">
+            Flange taps use automatic AGA-3 Reader-Harris/Gallagher Cd.
+            Pipe taps use the entered Cd until a company-approved legacy method is configured.
+          </p>
+
+        </div>
+
         <div class="two-column-grid">
 
           <div class="field">
@@ -832,8 +896,9 @@
               id="minimumBeta"
               class="input-control"
               type="number"
-              value="0.20"
+              value="0.15"
               step="0.01"
+              readonly
             >
 
           </div>
@@ -848,8 +913,9 @@
               id="maximumBeta"
               class="input-control"
               type="number"
-              value="0.75"
+              value="0.70"
               step="0.01"
+              readonly
             >
 
           </div>
@@ -877,7 +943,7 @@
         </h2>
 
         <p>
-          Gas Edition 1.0
+          Version 2.0 Beta 4 — Integrated AGA-3 Development Engine
         </p>
 
         <p class="small-note">

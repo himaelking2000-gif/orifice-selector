@@ -1,4 +1,4 @@
-const CACHE_NAME = "orifice-pro-v1";
+const CACHE_NAME = "orifice-pro-v2-beta4";
 
 const APP_FILES = [
   "./",

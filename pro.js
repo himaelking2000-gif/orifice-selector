@@ -14,8 +14,9 @@ let lastSelectorResult = null;
 let lastGasResult = null;
 
 let settings = {
-  minimumBeta: 0.20,
-  maximumBeta: 0.75
+  tapType: "flange",
+  minimumBeta: 0.15,
+  maximumBeta: 0.70
 };
 
 /* =========================================================
@@ -187,58 +188,78 @@ function toggleTheme() {
    SETTINGS
 ========================================================= */
 
+function tapLimits(tapType) {
+  if (tapType === "pipe") {
+    return {
+      minimumBeta: 0.20,
+      maximumBeta: 0.67
+    };
+  }
+
+  return {
+    minimumBeta: 0.15,
+    maximumBeta: 0.70
+  };
+}
+
+function previewTapTypeLimits() {
+  const tapType =
+    el("tapType")?.value ||
+    "flange";
+
+  const limits =
+    tapLimits(tapType);
+
+  if (el("minimumBeta")) {
+    el("minimumBeta").value =
+      limits.minimumBeta.toFixed(2);
+  }
+
+  if (el("maximumBeta")) {
+    el("maximumBeta").value =
+      limits.maximumBeta.toFixed(2);
+  }
+}
+
 function loadProSettings() {
   try {
     const savedSettings = JSON.parse(
       localStorage.getItem(SETTINGS_KEY) || "{}"
     );
 
+    const tapType =
+      savedSettings.tapType === "pipe"
+        ? "pipe"
+        : "flange";
+
     settings = {
-      ...settings,
-      ...savedSettings
+      tapType,
+      ...tapLimits(tapType)
     };
   } catch {
     settings = {
-      minimumBeta: 0.20,
-      maximumBeta: 0.75
+      tapType: "flange",
+      ...tapLimits("flange")
     };
   }
 
-  if (el("minimumBeta")) {
-    el("minimumBeta").value =
-      settings.minimumBeta;
+  if (el("tapType")) {
+    el("tapType").value =
+      settings.tapType;
   }
 
-  if (el("maximumBeta")) {
-    el("maximumBeta").value =
-      settings.maximumBeta;
-  }
+  previewTapTypeLimits();
 }
 
 function saveProSettings() {
-  const minimumBeta =
-    getNumber("minimumBeta");
-
-  const maximumBeta =
-    getNumber("maximumBeta");
-
-  if (
-    !Number.isFinite(minimumBeta) ||
-    !Number.isFinite(maximumBeta) ||
-    minimumBeta <= 0 ||
-    maximumBeta >= 1 ||
-    minimumBeta >= maximumBeta
-  ) {
-    alert(
-      "Enter valid beta limits. Minimum beta must be lower than maximum beta."
-    );
-
-    return;
-  }
+  const tapType =
+    el("tapType")?.value === "pipe"
+      ? "pipe"
+      : "flange";
 
   settings = {
-    minimumBeta,
-    maximumBeta
+    tapType,
+    ...tapLimits(tapType)
   };
 
   localStorage.setItem(
@@ -246,9 +267,14 @@ function saveProSettings() {
     JSON.stringify(settings)
   );
 
+  previewTapTypeLimits();
   renderPlateLibrary();
 
-  alert("Settings saved.");
+  alert(
+    tapType === "flange"
+      ? "Settings saved. Flange taps are active with AGA-3 automatic Cd."
+      : "Settings saved. Pipe taps are active; entered/manual Cd will be used."
+  );
 }
 
 /* =========================================================
@@ -309,24 +335,19 @@ function fractionFromDecimal(
 }
 
 function standardPlateSizes(pipeID) {
-  const minimumPlate = Math.max(
-    1 / 16,
+  const minimumPlate =
+    1 / 16;
 
+  const maximumByBeta =
     Math.floor(
-      pipeID *
-      settings.minimumBeta *
-      16
-    ) / 16
-  );
-
-  const maximumPlate = Math.max(
-    minimumPlate,
-
-    Math.ceil(
       pipeID *
       settings.maximumBeta *
       16
-    ) / 16
+    ) / 16;
+
+  const maximumPlate = Math.max(
+    minimumPlate,
+    maximumByBeta
   );
 
   const plates = [];
@@ -776,7 +797,10 @@ function calculatePlateSelector() {
     beta,
 
     status:
-      status.text
+      status.text,
+
+    tapType:
+      settings.tapType
   };
 
   showCard(
@@ -902,6 +926,153 @@ function renderSelectorPlateTable(
     html;
 }
 /* =========================================================
+   AGA-3 / API MPMS 14.3 (1990 RG FLANGE-TAP Cd)
+   Reader-Harris/Gallagher iterative discharge coefficient.
+   D is in inches, ReD is dimensionless.
+========================================================= */
+
+function aga3FlangeTapCd(
+  beta,
+  pipeIDIn,
+  reynoldsNumber
+) {
+  if (
+    !Number.isFinite(beta) ||
+    beta <= 0 ||
+    beta >= 1 ||
+    !Number.isFinite(pipeIDIn) ||
+    pipeIDIn <= 0 ||
+    !Number.isFinite(reynoldsNumber) ||
+    reynoldsNumber <= 0
+  ) {
+    return NaN;
+  }
+
+  const reD =
+    Math.max(reynoldsNumber, 4000);
+
+  const L1 =
+    1 / pipeIDIn;
+
+  const L2 =
+    1 / pipeIDIn;
+
+  const M1 =
+    Math.max(
+      2.8 - pipeIDIn,
+      0
+    );
+
+  const M2 =
+    (
+      2 *
+      L2
+    ) /
+    (
+      1 - beta
+    );
+
+  const A =
+    (
+      19000 *
+      beta /
+      reD
+    ) ** 0.8;
+
+  const B =
+    beta ** 4 /
+    (
+      1 - beta ** 4
+    );
+
+  const C =
+    (
+      1000000 /
+      reD
+    ) ** 0.35;
+
+  const ciCorner =
+    0.5961 +
+    0.0291 * beta ** 2 -
+    0.2290 * beta ** 8 +
+    0.003 *
+    (1 - beta) *
+    M1;
+
+  const upstream =
+    (
+      0.0433 +
+      0.0712 *
+      Math.exp(
+        -8.5 * L1
+      ) -
+      0.1145 *
+      Math.exp(
+        -6.0 * L1
+      )
+    ) *
+    (
+      1 - 0.23 * A
+    ) *
+    B;
+
+  const downstream =
+    -0.0116 *
+    (
+      M2 -
+      0.52 *
+      M2 ** 1.3
+    ) *
+    beta ** 1.1 *
+    (
+      1 - 0.14 * A
+    );
+
+  const ciFlange =
+    ciCorner +
+    upstream +
+    downstream;
+
+  const slopeTerm1 =
+    0.000511 *
+    (
+      1000000 *
+      beta /
+      reD
+    ) ** 0.7;
+
+  const slopeTerm2 =
+    (
+      0.0210 +
+      0.0049 * A
+    ) *
+    beta ** 4 *
+    C;
+
+  return (
+    ciFlange +
+    slopeTerm1 +
+    slopeTerm2
+  );
+}
+
+function pipeReynoldsNumber(
+  massFlowKgSecond,
+  pipeIDMeter,
+  dynamicViscosityPaSecond
+) {
+  return (
+    4 *
+    massFlowKgSecond
+  ) /
+  (
+    Math.PI *
+    pipeIDMeter *
+    dynamicViscosityPaSecond
+  );
+}
+
+/* =========================================================
    GAS FLOW CALCULATOR
    Engineering estimate only.
 ========================================================= */
@@ -934,8 +1105,11 @@ function calculateGasFlow() {
   const k =
     getNumber("gasK");
 
-  const cd =
+  const enteredCd =
     getNumber("gasCd");
+
+  const viscosityCp =
+    getNumber("gasViscosity");
 
   const basePressurePsia =
     getNumber("gasBasePressure");
@@ -952,7 +1126,8 @@ function calculateGasFlow() {
     gasSpecificGravity,
     z,
     k,
-    cd,
+    enteredCd,
+    viscosityCp,
     basePressurePsia,
     baseTemperatureF
   ];
@@ -989,8 +1164,9 @@ function calculateGasFlow() {
     gasSpecificGravity <= 0 ||
     z <= 0 ||
     k <= 1 ||
-    cd <= 0 ||
-    cd > 1 ||
+    enteredCd <= 0 ||
+    enteredCd > 1 ||
+    viscosityCp <= 0 ||
     basePressurePsia <= 0
   ) {
     showError(
@@ -1097,8 +1273,7 @@ function calculateGasFlow() {
     return;
   }
 
-  const massFlowKgSecond =
-    cd *
+  const flowRoot =
     expansionFactor *
     orificeArea *
     Math.sqrt(
@@ -1109,6 +1284,79 @@ function calculateGasFlow() {
       ) /
       denominator
     );
+
+  const dynamicViscosityPaSecond =
+    viscosityCp *
+    0.001;
+
+  let cd =
+    enteredCd;
+
+  let reynoldsNumber =
+    NaN;
+
+  if (
+    settings.tapType === "flange"
+  ) {
+    for (
+      let iteration = 0;
+      iteration < 30;
+      iteration++
+    ) {
+      const trialMassFlow =
+        cd *
+        flowRoot;
+
+      reynoldsNumber =
+        pipeReynoldsNumber(
+          trialMassFlow,
+          pipeID,
+          dynamicViscosityPaSecond
+        );
+
+      const nextCd =
+        aga3FlangeTapCd(
+          beta,
+          pipeIDIn,
+          reynoldsNumber
+        );
+
+      if (
+        !Number.isFinite(nextCd)
+      ) {
+        break;
+      }
+
+      if (
+        Math.abs(
+          nextCd - cd
+        ) < 0.0000001
+      ) {
+        cd = nextCd;
+        break;
+      }
+
+      cd = nextCd;
+    }
+
+    el("gasCd").value =
+      cd.toFixed(5);
+  }
+
+  const massFlowKgSecond =
+    cd *
+    flowRoot;
+
+  if (
+    !Number.isFinite(reynoldsNumber)
+  ) {
+    reynoldsNumber =
+      pipeReynoldsNumber(
+        massFlowKgSecond,
+        pipeID,
+        dynamicViscosityPaSecond
+      );
+  }
 
   const baseTemperatureKelvin =
     (baseTemperatureF + 459.67) *
@@ -1225,6 +1473,29 @@ function calculateGasFlow() {
 
   const warnings = [];
 
+  warnings.push({
+    level:
+      settings.tapType === "flange"
+        ? "success"
+        : "warning",
+
+    text:
+      settings.tapType === "flange"
+        ? `Flange taps: AGA-3 RG Cd = ${formatNumber(cd, 5)}, ReD = ${formatNumber(reynoldsNumber, 0)}.`
+        : `Pipe taps selected: manual Cd = ${formatNumber(cd, 5)} is being used.`
+  });
+
+  if (
+    settings.tapType === "flange" &&
+    reynoldsNumber < 4000
+  ) {
+    warnings.push({
+      level: "danger",
+      text:
+        "Pipe Reynolds number is below 4,000; the implemented RG correlation is outside its stated range."
+    });
+  }
+
   const status =
     betaStatus(beta);
 
@@ -1311,6 +1582,9 @@ function calculateGasFlow() {
     z,
     k,
     cd,
+    viscosityCp,
+    reynoldsNumber,
+    tapType: settings.tapType,
     basePressurePsia,
     baseTemperatureF,
     absolutePressurePsia,
